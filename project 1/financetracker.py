@@ -6,7 +6,7 @@ while True:
     print("4. Exit")
     choice = input("\nEnter choice: ").strip()
     if choice == "4":
-        print("Good Bye!")
+        print(" Thank you  Good Bye!")
         break
     elif choice in ("1", "2"):
         try:
