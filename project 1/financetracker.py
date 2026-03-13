@@ -24,8 +24,8 @@ while True:
     elif choice == "3":
         income = sum(t["amount"] for t in transactions if t["type"] == "income")
         expenses = sum(t["amount"] for t in transactions if t["type"] == "expense")
-        print(f"\n💚 Income in your account:   ₹{income:.2f}")
-        print(f"🔴 Expenses in your account: ₹{expenses:.2f}")
+        print(f"\n💚 Income you get :   ₹{income:.2f}")
+        print(f"🔴 Expenses you paid : ₹{expenses:.2f}")
         print(f"💰 Balance in your account Right now :  ₹{income - expenses:.2f}")
 
 
