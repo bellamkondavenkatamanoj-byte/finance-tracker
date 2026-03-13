@@ -26,7 +26,7 @@ while True:
         expenses = sum(t["amount"] for t in transactions if t["type"] == "expense")
         print(f"\n💚 Income in your account:   ₹{income:.2f}")
         print(f"🔴 Expenses in your account: ₹{expenses:.2f}")
-        print(f"💰 Balance in your account :  ₹{income - expenses:.2f}")
+        print(f"💰 Balance in your account Right now :  ₹{income - expenses:.2f}")
 
 
 this my python project now add simple frientend for this and do not change any my code ok
