@@ -25,7 +25,7 @@ while True:
         income = sum(t["amount"] for t in transactions if t["type"] == "income")
         expenses = sum(t["amount"] for t in transactions if t["type"] == "expense")
         print(f"\n💚 Income in your account:   ₹{income:.2f}")
-        print(f"🔴 Expenses: ₹{expenses:.2f}")
+        print(f"🔴 Expenses in your account: ₹{expenses:.2f}")
         print(f"💰 Balance in your account :  ₹{income - expenses:.2f}")
 
 
