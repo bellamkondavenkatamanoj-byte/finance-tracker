@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Tracker</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --card: #21253a;
+    --border: #2e3350;
+    --accent: #6c63ff;
+    --accent2: #4ecca3;
+    --danger: #ff6b6b;
+    --warn: #ffd166;
+    --text: #e8eaf0;
+    --muted: #7b80a0;
+    --font: 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+  /* NAV */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+  .logo { font-size: 1.2rem; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+  .logo span { color: var(--accent2); }
+  .nav-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav-tab { padding: 8px 18px; border-radius: 8px; border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: all .2s; }
+  .nav-tab:hover { background: var(--card); color: var(--text); }
+  .nav-tab.active { background: var(--card); color: var(--accent); }
+  .nav-tab.tab-income { color: var(--accent2); }
+  .nav-tab.tab-income:hover, .nav-tab.tab-income.active { background: rgba(78,204,163,.12); color: var(--accent2); }
+  .nav-tab.tab-expense { color: var(--danger); }
+  .nav-tab.tab-expense:hover, .nav-tab.tab-expense.active { background: rgba(255,107,107,.12); color: var(--danger); }
+  .nav-tab.tab-exit { color: var(--muted); border: 1px solid var(--border); }
+  .nav-tab.tab-exit:hover { background: rgba(255,107,107,.1); color: var(--danger); border-color: var(--danger); }
+
+  /* LAYOUT */
+  .container { max-width: 960px; margin: 0 auto; padding: 28px 20px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; margin-bottom: 18px; }
+  .card-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+  .card-value { font-size: 2rem; font-weight: 700; }
+
+  /* SUMMARY GRID */
+  .summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+  .summary-row .card { margin-bottom: 0; }
+  .income-val { color: var(--accent2); }
+  .expense-val { color: var(--danger); }
+  .balance-val { color: var(--accent); }
+
+  /* SUMMARY PAGE EXTRAS */
+  .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .cat-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .cat-item:last-child { border-bottom: none; }
+  .cat-name { font-size: 0.88rem; color: var(--text); }
+  .cat-val { font-size: 0.88rem; font-weight: 700; }
+  .savings-bar-wrap { margin-top: 10px; }
+  .savings-bar-bg { background: var(--border); border-radius: 6px; height: 10px; overflow: hidden; margin-top: 8px; }
+  .savings-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width .5s ease; }
+  .savings-label { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+
+  /* FORM */
+  .form-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .form-header-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .form-header-icon.inc { background: rgba(78,204,163,.15); }
+  .form-header-icon.exp { background: rgba(255,107,107,.15); }
+  .form-header h2 { font-size: 1.05rem; font-weight: 700; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 0.82rem; color: var(--muted); }
+  .form-group input, .form-group select { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 0.92rem; outline: none; transition: border .2s; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+  .form-group.income-focus input:focus { border-color: var(--accent2); }
+  .form-group.expense-focus input:focus { border-color: var(--danger); }
+  .form-group select option { background: var(--surface); }
+  .btn { padding: 11px 22px; border-radius: 9px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: opacity .2s, transform .1s; }
+  .btn:hover { opacity: 0.88; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-income { background: var(--accent2); color: #0f1117; }
+  .btn-expense { background: var(--danger); color: #fff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; }
+  .mt { margin-top: 16px; }
+
+  /* TRANSACTIONS */
+  .txn-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+  .txn-item { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+  .txn-left { display: flex; flex-direction: column; gap: 3px; }
+  .txn-desc { font-weight: 600; font-size: 0.92rem; }
+  .txn-meta { font-size: 0.76rem; color: var(--muted); }
+  .txn-amt { font-weight: 700; font-size: 1.05rem; }
+  .txn-amt.inc { color: var(--accent2); }
+  .txn-amt.exp { color: var(--danger); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: var(--border); color: var(--muted); margin-right: 6px; }
+
+  /* BAR CHART */
+  .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 120px; margin-top: 12px; }
+  .bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
+  .bar { width: 100%; border-radius: 6px 6px 0 0; transition: height .4s ease; min-height: 4px; }
+  .bar.inc-bar { background: var(--accent2); }
+  .bar.exp-bar { background: var(--danger); }
+  .bar-label { font-size: 0.68rem; color: var(--muted); }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 40px; color: var(--muted); font-size: 0.9rem; }
+
+  /* EXIT MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .modal-overlay.hidden { display: none; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: center; max-width: 360px; width: 90%; }
+  .modal h3 { font-size: 1.15rem; margin-bottom: 8px; }
+  .modal p { color: var(--muted); font-size: 0.88rem; margin-bottom: 24px; }
+  .modal-btns { display: flex; gap: 10px; justify-content: center; }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .summary-row { grid-template-columns: 1fr; }
+    .category-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .card-value { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Finance<span>Tracker</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active"      onclick="showPage('summary')">📊 Summary</button>
+    <button class="nav-tab tab-income"  onclick="showPage('income')">＋ Add Income</button>
+    <button class="nav-tab tab-expense" onclick="showPage('expense')">－ Add Expense</button>
+    <button class="nav-tab tab-exit"    onclick="confirmExit()">✕ Exit</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- SUMMARY -->
+  <div id="page-summary" class="page active">
+    <div class="summary-row">
+      <div class="card">
+        <div class="card-title">Total Income</div>
+        <div class="card-value income-val" id="total-income">₹0</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Total Expenses</div>
+        <div class="card-value expense-val" id="total-expense">₹0</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Balance</div>
+        <div class="card-value balance-val" id="balance">₹0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Savings Rate</div>
+      <div class="savings-bar-wrap">
+        <div class="savings-bar-bg"><div class="savings-bar-fill" id="savings-bar" style="width:0%"></div></div>
+        <div class="savings-label" id="savings-label">No data yet</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Monthly Overview</div>
+      <div class="bar-chart" id="bar-chart"></div>
+      <div style="display:flex;gap:16px;margin-top:10px;">
+        <span style="font-size:.75rem;color:var(--accent2);">● Income</span>
+        <span style="font-size:.75rem;color:var(--danger);">● Expense</span>
+      </div>
+    </div>
+
+    <div class="category-grid">
+      <div class="card">
+        <div class="card-title">Income by Category</div>
+        <div id="income-cats"><div class="empty" style="padding:20px;">No data</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Expense by Category</div>
+        <div id="expense-cats"><div class="empty" style="padding:20px;">No data</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">All Transactions</div>
+      <div class="txn-list" id="txn-list"><div class="empty">No transactions yet.</div></div>
+    </div>
+  </div>
+
+  <!-- ADD INCOME -->
+  <div id="page-income" class="page">
+    <div class="card">
+      <div class="form-header">
+        <div class="form-header-icon inc">💰</div>
+        <h2 style="color:var(--accent2);">Add Income</h2>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="inc-desc" placeholder="e.g. Monthly salary">
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="inc-amount" placeholder="0.00" min="0">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="inc-category">
+            <option value="Salary">Salary</option>
+            <option value="Freelance">Freelance</option>
+            <option value="Business">Business</option>
+            <option value="Investment">Investment</option>
+            <option value="Gift">Gift</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="inc-date">
+        </div>
+      </div>
+      <button class="btn btn-income mt" onclick="addIncome()">＋ Add Income</button>
+      <div id="inc-msg" style="margin-top:12px;font-size:.85rem;"></div>
+    </div>
+  </div>
+
+  <!-- ADD EXPENSE -->
+  <div id="page-expense" class="page">
+    <div class="card">
+      <div class="form-header">
+        <div class="form-header-icon exp">💸</div>
+        <h2 style="color:var(--danger);">Add Expense</h2>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="exp-desc" placeholder="e.g. Grocery shopping">
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="exp-amount" placeholder="0.00" min="0">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="exp-category">
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Bills">Bills</option>
+            <option value="Health">Health</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="exp-date">
+        </div>
+      </div>
+      <button class="btn btn-expense mt" onclick="addExpense()">－ Add Expense</button>
+      <div id="exp-msg" style="margin-top:12px;font-size:.85rem;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EXIT MODAL -->
+<div class="modal-overlay hidden" id="exit-modal">
+  <div class="modal">
+    <h3>Exit Finance Tracker?</h3>
+    <p>Your data is saved. You can return anytime and everything will still be here.</p>
+    <div class="modal-btns">
+      <button class="btn btn-danger" onclick="doExit()">Yes, Exit</button>
+      <button class="btn" style="background:var(--border);color:var(--text);" onclick="closeModal()">Stay</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────
+let transactions = JSON.parse(localStorage.getItem('ft_txns') || '[]');
+const PAGES = ['summary','income','expense'];
+
+// ─── NAVIGATION ───────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-tab')[PAGES.indexOf(name)].classList.add('active');
+  if (name === 'summary') renderSummary();
+}
+
+// ─── SAVE ─────────────────────────────────────────────
+function save() { localStorage.setItem('ft_txns', JSON.stringify(transactions)); }
+function fmt(n) { return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 0 }); }
+
+// ─── ADD INCOME ───────────────────────────────────────
+function addIncome() {
+  const desc = document.getElementById('inc-desc').value.trim();
+  const amount = parseFloat(document.getElementById('inc-amount').value);
+  const category = document.getElementById('inc-category').value;
+  const date = document.getElementById('inc-date').value;
+  const msg = document.getElementById('inc-msg');
+  if (!desc || isNaN(amount) || amount <= 0 || !date) {
+    msg.style.color = 'var(--danger)'; msg.textContent = 'Please fill all fields correctly.'; return;
+  }
+  transactions.unshift({ id: Date.now(), desc, amount, type: 'income', category, date });
+  save();
+  msg.style.color = 'var(--accent2)'; msg.textContent = '✓ Income added!';
+  document.getElementById('inc-desc').value = '';
+  document.getElementById('inc-amount').value = '';
+  setTimeout(() => msg.textContent = '', 2500);
+}
+
+// ─── ADD EXPENSE ──────────────────────────────────────
+function addExpense() {
+  const desc = document.getElementById('exp-desc').value.trim();
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  const category = document.getElementById('exp-category').value;
+  const date = document.getElementById('exp-date').value;
+  const msg = document.getElementById('exp-msg');
+  if (!desc || isNaN(amount) || amount <= 0 || !date) {
+    msg.style.color = 'var(--danger)'; msg.textContent = 'Please fill all fields correctly.'; return;
+  }
+  transactions.unshift({ id: Date.now(), desc, amount, type: 'expense', category, date });
+  save();
+  msg.style.color = 'var(--accent2)'; msg.textContent = '✓ Expense added!';
+  document.getElementById('exp-desc').value = '';
+  document.getElementById('exp-amount').value = '';
+  setTimeout(() => msg.textContent = '', 2500);
+}
+
+// ─── DELETE ───────────────────────────────────────────
+function deleteTransaction(id) {
+  transactions = transactions.filter(t => t.id !== id);
+  save(); renderSummary();
+}
+
+// ─── SUMMARY ──────────────────────────────────────────
+function renderSummary() {
+  const income  = transactions.filter(t => t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense = transactions.filter(t => t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const balance = income - expense;
+
+  document.getElementById('total-income').textContent = fmt(income);
+  document.getElementById('total-expense').textContent = fmt(expense);
+  const balEl = document.getElementById('balance');
+  balEl.textContent = fmt(balance);
+  balEl.style.color = balance >= 0 ? 'var(--accent)' : 'var(--danger)';
+
+  // Savings rate
+  const rate = income > 0 ? Math.max(0, Math.round((balance / income) * 100)) : 0;
+  document.getElementById('savings-bar').style.width = Math.min(rate, 100) + '%';
+  document.getElementById('savings-label').textContent = income > 0
+    ? `You're saving ${rate}% of your income`
+    : 'Add income to see your savings rate';
+
+  renderChart();
+  renderCategories(income, expense);
+  renderList();
+}
+
+function renderChart() {
+  const months = [];
+  for (let i = 4; i >= 0; i--) {
+    const d = new Date(); d.setMonth(d.getMonth() - i);
+    months.push({ label: d.toLocaleString('default',{month:'short'}), key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` });
+  }
+  const data = months.map(m => {
+    const inc = transactions.filter(t=>t.type==='income'&&t.date.startsWith(m.key)).reduce((s,t)=>s+t.amount,0);
+    const exp = transactions.filter(t=>t.type==='expense'&&t.date.startsWith(m.key)).reduce((s,t)=>s+t.amount,0);
+    return {...m,inc,exp};
+  });
+  const max = Math.max(...data.map(d=>Math.max(d.inc,d.exp)),1);
+  document.getElementById('bar-chart').innerHTML = data.map(d=>`
+    <div class="bar-wrap">
+      <div class="bar inc-bar" style="height:${(d.inc/max)*100}px" title="Income: ${fmt(d.inc)}"></div>
+      <div class="bar exp-bar" style="height:${(d.exp/max)*100}px" title="Expense: ${fmt(d.exp)}"></div>
+      <div class="bar-label">${d.label}</div>
+    </div>`).join('');
+}
+
+function renderCategories() {
+  const byCat = (type) => {
+    const map = {};
+    transactions.filter(t=>t.type===type).forEach(t=>{ map[t.category]=(map[t.category]||0)+t.amount; });
+    return Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  };
+  const renderCat = (entries, color) => entries.length
+    ? entries.map(([k,v])=>`<div class="cat-item"><span class="cat-name">${k}</span><span class="cat-val" style="color:${color}">${fmt(v)}</span></div>`).join('')
+    : '<div class="empty" style="padding:20px;">No data</div>';
+  document.getElementById('income-cats').innerHTML  = renderCat(byCat('income'),  'var(--accent2)');
+  document.getElementById('expense-cats').innerHTML = renderCat(byCat('expense'), 'var(--danger)');
+}
+
+function renderList() {
+  const el = document.getElementById('txn-list');
+  if (!transactions.length) { el.innerHTML = '<div class="empty">No transactions yet. Add income or expense!</div>'; return; }
+  el.innerHTML = transactions.map(t=>`
+    <div class="txn-item">
+      <div class="txn-left">
+        <div class="txn-desc">${t.desc}</div>
+        <div class="txn-meta"><span class="tag">${t.category}</span>${t.date}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="txn-amt ${t.type==='income'?'inc':'exp'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
+        <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${t.id})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── EXIT ─────────────────────────────────────────────
+function confirmExit() { document.getElementById('exit-modal').classList.remove('hidden'); }
+function closeModal()  { document.getElementById('exit-modal').classList.add('hidden'); }
+function doExit()      { window.close(); /* fallback */ document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;color:#7b80a0;font-family:sans-serif;background:#0f1117"><div style="font-size:2rem;">👋</div><div>Session ended. Close this tab to exit.</div></div>'; }
+
+// ─── INIT ─────────────────────────────────────────────
+document.getElementById('inc-date').valueAsDate = new Date();
+document.getElementById('exp-date').valueAsDate = new Date();
+renderSummary();
+</script>
+</body>
+</html>
